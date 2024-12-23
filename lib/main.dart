@@ -21,7 +21,7 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.getDarkTheme(themeState.themeColor.materialColor),
       theme: AppTheme.getLightTheme(themeState.themeColor.materialColor),
       themeMode: themeState.themeMode.themeMode,
-      home: const HomeScreen(title: 'Flutter Demo Home Page'),
+      home: const HomeScreen(title: 'Installed Apps'),
     );
   }
 }
