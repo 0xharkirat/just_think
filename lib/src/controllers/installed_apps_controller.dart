@@ -3,13 +3,13 @@ import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 
 
-class AppListController extends AsyncNotifier<List<AppInfo>> {
+class InstalledAppsController extends AsyncNotifier<Map<String, AppInfo>> {
   @override
-  Future<List<AppInfo>> build() async {
+  Future<Map<String, AppInfo>> build() async {
     return fetchApps();
   }
 
-  Future<List<AppInfo>> fetchApps({
+  Future<Map<String, AppInfo>> fetchApps({
     bool excludeSystemApps = true,
     bool withIcon = true,
   }) async {
@@ -18,7 +18,11 @@ class AppListController extends AsyncNotifier<List<AppInfo>> {
         excludeSystemApps,
         withIcon,
       );
-      return installedApps;
+
+      final Map<String, AppInfo> installedAppsMap =  {
+        for (final app in installedApps) "${app.name},${app.packageName}": app,
+      };
+      return installedAppsMap;
     } catch (error) {
       throw Exception('Failed to load apps: $error');
     }
@@ -34,5 +38,5 @@ class AppListController extends AsyncNotifier<List<AppInfo>> {
   }
 }
 
-final appListController =
-    AsyncNotifierProvider<AppListController, List<AppInfo>>(() => AppListController());
+final installedAppsController =
+    AsyncNotifierProvider<InstalledAppsController, Map<String, AppInfo>>(() => InstalledAppsController());
