@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:just_think/src/views/widgets/theme_switch.dart';
+import 'package:just_think/src/views/widgets/theme_color_switch.dart';
+import 'package:just_think/src/views/widgets/theme_mode_switch.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.title});
@@ -26,7 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: const [
-          ThemeSwitch(),
+          ThemeColorSwitch(),
+          ThemeModeSwitch(),
         ],
       ),
       body: Center(

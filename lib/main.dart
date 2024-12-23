@@ -14,13 +14,13 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeController);
+    final themeState = ref.watch(themeController);
     return MaterialApp(
       title: 'Just Think',
       debugShowCheckedModeBanner: false,
-      darkTheme: AppTheme.darkTheme,
-      theme: AppTheme.lightTheme,
-      themeMode: ref.watch(themeController.notifier).getThemeMode(themeMode),
+      darkTheme: AppTheme.getDarkTheme(themeState.themeColor.materialColor),
+      theme: AppTheme.getLightTheme(themeState.themeColor.materialColor),
+      themeMode: themeState.themeMode.themeMode,
       home: const HomeScreen(title: 'Flutter Demo Home Page'),
     );
   }

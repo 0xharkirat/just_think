@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
+import 'package:just_think/src/core/app_theme.dart';
 import 'package:just_think/src/core/extensions.dart';
 
-class ThemeSwitch extends ConsumerWidget {
-  const ThemeSwitch({super.key});
+
+class ThemeModeSwitch extends ConsumerWidget {
+  const ThemeModeSwitch({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,9 +17,9 @@ class ThemeSwitch extends ConsumerWidget {
         Icons.brightness_6, // Use any icon you like here
       ),
       onSelected: (AppThemeMode newMode) {
-        themeControllerNotifier.setTheme(newMode);
+        themeControllerNotifier.setThemeMode(newMode);
       },
-      initialValue: ref.watch(themeController),
+      initialValue: ref.watch(themeController).themeMode,
       tooltip: "Change theme",
       itemBuilder: (BuildContext context) {
         return AppThemeMode.values.map((AppThemeMode mode) {

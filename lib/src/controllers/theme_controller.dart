@@ -1,61 +1,49 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_think/src/core/app_theme.dart';
+import 'package:just_think/src/models/theme_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum AppThemeMode { system, light, dark }
-
-class ThemeController extends Notifier<AppThemeMode> {
-  static const _themeKey = 'themeMode';
+class ThemeController extends Notifier<ThemeState> {
+  static const _themeModeKey = 'themeMode';
+  static const _themeColorKey = 'themeColor';
 
   @override
-  AppThemeMode build() {
-    // Default to system theme and initialize asynchronously
-    _initializeTheme();
-    return AppThemeMode.system;
+  ThemeState build() {
+    _initialize();
+    return ThemeState(AppThemeMode.system, ThemeColor.purple);
   }
 
-  Future<void> _initializeTheme() async {
-    final mode = await _loadThemeMode();
-    state = mode;
-  }
-
-  Future<void> setTheme(AppThemeMode mode) async {
-    state = mode;
-    await _saveThemeMode(mode);
-  }
-
-  Future<AppThemeMode> _loadThemeMode() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedMode = prefs.getString(_themeKey);
-
-      return AppThemeMode.values.firstWhere(
-        (e) => e.name == savedMode,
-        orElse: () => AppThemeMode.system,
-      );
-    } catch (e) {
-      // Handle any errors gracefully and default to system theme
-      return AppThemeMode.system;
-    }
-  }
-
-  Future<void> _saveThemeMode(AppThemeMode mode) async {
+  Future<void> _initialize() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_themeKey, mode.name);
+    final modeName = prefs.getString(_themeModeKey);
+    final colorName = prefs.getString(_themeColorKey);
+
+    final themeMode = AppThemeMode.values.firstWhere(
+      (e) => e.name == modeName,
+      orElse: () => AppThemeMode.system,
+    );
+
+    final themeColor = ThemeColor.values.firstWhere(
+      (e) => e.name == colorName,
+      orElse: () => ThemeColor.purple,
+    );
+
+    state = ThemeState(themeMode, themeColor);
   }
 
-  ThemeMode getThemeMode(AppThemeMode appThemeMode) {
-    switch (appThemeMode) {
-      case AppThemeMode.light:
-        return ThemeMode.light;
-      case AppThemeMode.dark:
-        return ThemeMode.dark;
-      default:
-        return ThemeMode.system;
-    }
+  Future<void> setThemeMode(AppThemeMode mode) async {
+    state = state.copyWith(themeMode: mode);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeModeKey, mode.name);
+  }
+
+  Future<void> setThemeColor(ThemeColor color) async {
+    state = state.copyWith(themeColor: color);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeColorKey, color.name);
   }
 }
 
-final themeController = NotifierProvider<ThemeController, AppThemeMode>(() {
+final themeController = NotifierProvider<ThemeController, ThemeState>(() {
   return ThemeController();
 });
