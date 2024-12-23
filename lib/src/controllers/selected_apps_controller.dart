@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:isar/isar.dart';
+import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/models/app_info_wrapper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:installed_apps/app_info.dart';
@@ -47,7 +48,7 @@ class SelectedAppsController extends AsyncNotifier<Map<String, AppInfo>> {
 
     await _isar.writeTxn(() async {
       final wrapper =
-          await _isar.appInfoWrappers.filter().keyEqualTo(key).findFirst();
+          await _isar.appInfoWrappers.filter().packageNameEqualTo(key).findFirst();
       if (wrapper != null) {
         await _isar.appInfoWrappers.delete(wrapper.id);
       }
@@ -77,11 +78,10 @@ class SelectedAppsController extends AsyncNotifier<Map<String, AppInfo>> {
 
     for (var wrapper in storedWrappers) {
       log("wrapper: $wrapper");
-      final app = wrapper.toAppInfo();
-      final key = "${app.name},${app.packageName}";
+      final app = wrapper;
       final isInstalled = await InstalledApps.isAppInstalled(app.packageName);
       if (isInstalled == true) {
-        validatedApps[key] = app;
+        validatedApps[app.packageName] = await ref.read(installedAppsController.notifier).getAppInfo(app.packageName);
       } else {
         await _isar.writeTxn(() async {
           await _isar.appInfoWrappers.delete(wrapper.id);

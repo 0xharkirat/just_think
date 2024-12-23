@@ -20,7 +20,7 @@ class InstalledAppsController extends AsyncNotifier<Map<String, AppInfo>> {
       );
 
       final Map<String, AppInfo> installedAppsMap =  {
-        for (final app in installedApps) "${app.name},${app.packageName}": app,
+        for (final app in installedApps) app.packageName: app,
       };
       return installedAppsMap;
     } catch (error) {
@@ -35,6 +35,10 @@ class InstalledAppsController extends AsyncNotifier<Map<String, AppInfo>> {
     } catch (error) {
       state = AsyncValue.error(error, StackTrace.current);
     }
+  }
+
+  Future<AppInfo> getAppInfo(String packageName) async {
+    return (await InstalledApps.getAppInfo(packageName))!;
   }
 }
 
