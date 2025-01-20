@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
 import 'package:just_think/src/core/app_theme.dart';
+import 'package:just_think/src/views/screens/foreground_app_screen.dart';
 import 'package:just_think/src/views/screens/home_screen.dart';
 import 'package:just_think/src/views/screens/usage_permissions_screen.dart';
 
@@ -36,7 +37,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       darkTheme: AppTheme.getDarkTheme(themeState.themeColor.materialColor),
       theme: AppTheme.getLightTheme(themeState.themeColor.materialColor),
       themeMode: themeState.themeMode.themeMode,
-      home: const GrantPermissionScreen(),
+      home: const ForegroundAppScreen(),
     );
   }
 }

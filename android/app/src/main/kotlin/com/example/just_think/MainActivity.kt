@@ -5,6 +5,9 @@ import android.net.Uri
 import android.content.Intent
 import android.provider.Settings
 import android.content.Context
+import android.app.usage.UsageStats
+import android.app.usage.UsageStatsManager
+import android.os.Build
 import androidx.annotation.NonNull
 import io.flutter.plugin.common.MethodChannel
 
@@ -22,6 +25,14 @@ class MainActivity: FlutterActivity() {
                     redirectToUsageAccessSettings()
                     result.success(null)
                 }
+                "getForegroundApp" -> {
+                    val foregroundApp = getForegroundApp()
+                    if (foregroundApp != null) {
+                        result.success(foregroundApp)
+                    } else {
+                        result.error("UNAVAILABLE", "Could not retrieve foreground app", null)
+                    }
+                }
                 else -> result.notImplemented()
             }
         }
@@ -36,6 +47,22 @@ class MainActivity: FlutterActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun getForegroundApp(): String? {
+        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val currentTime = System.currentTimeMillis()
+        val stats = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY,
+            currentTime - 1000 * 60 * 60, // Past hour
+            currentTime
+        )
+
+        if (stats != null) {
+            val recentStats = stats.maxByOrNull { it.lastTimeUsed }
+            return recentStats?.packageName
+        }
+        return null
     }
 
 }
