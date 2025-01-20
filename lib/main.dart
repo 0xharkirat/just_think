@@ -6,6 +6,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
@@ -13,6 +14,7 @@ import 'package:just_think/src/core/app_theme.dart';
 import 'package:just_think/src/views/screens/foreground_app_screen.dart';
 import 'package:just_think/src/views/screens/home_screen.dart';
 import 'package:just_think/src/views/screens/usage_permissions_screen.dart';
+import 'package:just_think/src/views/widgets/overlay_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -53,6 +55,16 @@ class _MyAppState extends ConsumerState<MyApp> {
       home: const ForegroundAppScreen(),
     );
   }
+}
+
+
+// overlay entry point
+@pragma("vm:entry-point")
+void overlayMain() {
+  runApp( MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: OverlayWidget()
+  ));
 }
 
 // this will be used as notification channel id
