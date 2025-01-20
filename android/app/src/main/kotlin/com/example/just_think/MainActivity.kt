@@ -1,41 +1,51 @@
 package com.example.just_think
 
-import io.flutter.embedding.android.FlutterActivity
-import android.net.Uri
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
-import android.content.Context
-import android.app.usage.UsageStats
-import android.app.usage.UsageStatsManager
-import android.os.Build
 import androidx.annotation.NonNull
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import android.util.Log
 
+class MainActivity : FlutterActivity() {
 
-class MainActivity: FlutterActivity() {
-
-    private val CHANNEL = "com.example.just_think/foreground"
+    private val METHOD_CHANNEL = "com.example.just_think/foreground"
+    private val EVENT_CHANNEL = "com.example.just_think/foreground_app"
 
     override fun configureFlutterEngine(@NonNull flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+        // MethodChannel for redirecting to Usage Access Settings
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, METHOD_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "redirectToUsageAccessSettings" -> {
                     redirectToUsageAccessSettings()
                     result.success(null)
                 }
-                "getForegroundApp" -> {
-                    val foregroundApp = getForegroundApp()
-                    if (foregroundApp != null) {
-                        result.success(foregroundApp)
-                    } else {
-                        result.error("UNAVAILABLE", "Could not retrieve foreground app", null)
-                    }
-                }
                 else -> result.notImplemented()
             }
         }
+
+        // EventChannel for broadcasting app changes
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL).setStreamHandler(object : EventChannel.StreamHandler {
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                ForegroundAppService.eventSink = events
+                Log.d("MainActivity", "EventSink initialized: $events")
+
+                // Start the ForegroundAppService
+                startService(Intent(this@MainActivity, ForegroundAppService::class.java))
+            }
+
+            override fun onCancel(arguments: Any?) {
+                ForegroundAppService.eventSink = null
+                Log.d("MainActivity", "EventSink detached")
+
+                // Stop the ForegroundAppService
+                stopService(Intent(this@MainActivity, ForegroundAppService::class.java))
+            }
+        })
     }
 
     private fun redirectToUsageAccessSettings() {
@@ -48,22 +58,4 @@ class MainActivity: FlutterActivity() {
             e.printStackTrace()
         }
     }
-
-    private fun getForegroundApp(): String? {
-        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val currentTime = System.currentTimeMillis()
-        val stats = usageStatsManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            currentTime - 1000 * 60 * 60, // Past hour
-            currentTime
-        )
-
-        if (stats != null) {
-            val recentStats = stats.maxByOrNull { it.lastTimeUsed }
-            return recentStats?.packageName
-        }
-        return null
-    }
-
 }
-

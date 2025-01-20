@@ -9,38 +9,45 @@ class ForegroundAppScreen extends StatefulWidget {
 }
 
 class _ForegroundAppScreenState extends State<ForegroundAppScreen> {
+  static const eventChannel = EventChannel('com.example.just_think/foreground_app');
   static const platform = MethodChannel('com.example.just_think/foreground');
-  String _foregroundApp = "Unknown";
-
-  Future<void> getForegroundApp() async {
-    try {
-      final String result = await platform.invokeMethod('getForegroundApp');
-      setState(() {
-        _foregroundApp = result;
-      });
-    } on PlatformException catch (e) {
-      setState(() {
-        _foregroundApp = "Failed to get foreground app: ${e.message}";
-      });
-    }
-  }
+  String currentApp = "Unknown";
 
   @override
   void initState() {
     super.initState();
-    getForegroundApp();
+    eventChannel.receiveBroadcastStream().listen(
+          (event) {
+        setState(() {
+          currentApp = event; // Update the UI with the received app name
+        });
+        print("Received foreground app: $event"); // Log received data
+      },
+      onError: (error) {
+        print("Error receiving event: $error");
+      },
+    );
+  }
+
+
+  Future<void> redirectToUsageAccessSettings() async {
+    try {
+      await platform.invokeMethod('redirectToUsageAccessSettings');
+    } on PlatformException catch (e) {
+      print("Failed to open settings: ${e.message}");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Foreground App')),
-      body: Center(
-        child: Text('Current App: $_foregroundApp'),
+      appBar: AppBar(title: const Text("Foreground App Tracker"),
+        actions: [
+          IconButton(onPressed: redirectToUsageAccessSettings, icon: Icon(Icons.settings))
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: getForegroundApp,
-        child: Icon(Icons.refresh),
+      body: Center(
+        child: Text("Current App: $currentApp"),
       ),
     );
   }

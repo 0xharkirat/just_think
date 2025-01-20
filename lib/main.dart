@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:ui';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
+// import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
@@ -16,7 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await initializeService();
+  // await initializeService();
 
   runApp(const ProviderScope(child: MyApp()));
 
@@ -59,95 +61,115 @@ const notificationChannelId = 'just_think_notifications';
 // this will be used for notification id, So you can update your custom notification with this id.
 const notificationId = 888;
 
-Future<void> initializeService() async {
-  final service = FlutterBackgroundService();
-
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    notificationChannelId, // id
-    'Just Think Notifications', // title
-    description:
-    'Notification channel for Just Think App', // description
-    importance: Importance.low, // importance must be at low or higher level
-  );
-
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
-
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-
-
-  await service.configure(
-    androidConfiguration: AndroidConfiguration(
-      // this will be executed when app is in foreground or background in separated isolate
-      onStart: onStart,
-
-      // auto start service
-      autoStart: true,
-      isForegroundMode: true,
-      notificationChannelId: notificationChannelId,
-      initialNotificationTitle: 'Just Think SERVICE',
-      initialNotificationContent: 'Initializing',
-      foregroundServiceNotificationId: notificationId,
-      foregroundServiceTypes: [AndroidForegroundType.dataSync],
-    ),
-    iosConfiguration: IosConfiguration(),
-  );
-}
-
-@pragma('vm:entry-point')
-void onStart(ServiceInstance service) async {
-  // Only available for flutter 3.0.0 and later
-  DartPluginRegistrant.ensureInitialized();
-
-  // For flutter prior to version 3.0.0
-  // We have to register the plugin manually
-
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.setString("hello", "world");
-
-
-
-  if (service is AndroidServiceInstance) {
-    service.on('setAsForeground').listen((event) {
-      service.setAsForegroundService();
-    });
-
-    service.on('setAsBackground').listen((event) {
-      service.setAsBackgroundService();
-    });
-  }
-
-  service.on('stopService').listen((event) {
-    service.stopSelf();
-  });
-
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
-
-
-  Timer.periodic(const Duration(seconds: 1), (timer) async {
-    if (service is AndroidServiceInstance) {
-      if (await service.isForegroundService()) {
-        flutterLocalNotificationsPlugin.show(
-          notificationId,
-          'Just Think',
-          'Awesome ${DateTime.now()}',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              notificationChannelId,
-              'Just Think SERVICE',
-              icon: 'ic_bg_service_small',
-              ongoing: true,
-            ),
-          ),
-        );
-      }
-    }
-
-    log("Awesome ${DateTime.now()}");
-  });
-
-}
+// Future<void> initializeService() async {
+//   final service = FlutterBackgroundService();
+//
+//   const AndroidNotificationChannel channel = AndroidNotificationChannel(
+//     notificationChannelId, // id
+//     'Just Think Notifications', // title
+//     description:
+//     'Notification channel for Just Think App', // description
+//     importance: Importance.low, // importance must be at low or higher level
+//   );
+//
+//   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+//   FlutterLocalNotificationsPlugin();
+//
+//   await flutterLocalNotificationsPlugin
+//       .resolvePlatformSpecificImplementation<
+//       AndroidFlutterLocalNotificationsPlugin>()
+//       ?.createNotificationChannel(channel);
+//
+//
+//   await service.configure(
+//     androidConfiguration: AndroidConfiguration(
+//       // this will be executed when app is in foreground or background in separated isolate
+//       onStart: onStart,
+//
+//       // auto start service
+//       autoStart: true,
+//       isForegroundMode: true,
+//       notificationChannelId: notificationChannelId,
+//       initialNotificationTitle: 'Just Think SERVICE',
+//       initialNotificationContent: 'Initializing',
+//       foregroundServiceNotificationId: notificationId,
+//       foregroundServiceTypes: [AndroidForegroundType.dataSync],
+//     ),
+//     iosConfiguration: IosConfiguration(),
+//   );
+// }
+//
+// @pragma('vm:entry-point')
+// void onStart(ServiceInstance service) async {
+//   // Only available for flutter 3.0.0 and later
+//   DartPluginRegistrant.ensureInitialized();
+//
+//   // For flutter prior to version 3.0.0
+//   // We have to register the plugin manually
+//
+//   SharedPreferences preferences = await SharedPreferences.getInstance();
+//   await preferences.setString("hello", "world");
+//
+//
+//
+//   if (service is AndroidServiceInstance) {
+//     service.on('setAsForeground').listen((event) {
+//       service.setAsForegroundService();
+//     });
+//
+//     service.on('setAsBackground').listen((event) {
+//       service.setAsBackgroundService();
+//     });
+//   }
+//
+//   service.on('stopService').listen((event) {
+//     service.stopSelf();
+//   });
+//
+//   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+//   FlutterLocalNotificationsPlugin();
+//
+//
+//   Timer.periodic(const Duration(seconds: 1), (timer) async {
+//     if (service is AndroidServiceInstance) {
+//       if (await service.isForegroundService()) {
+//         flutterLocalNotificationsPlugin.show(
+//           notificationId,
+//           'Just Think',
+//           'Awesome ${DateTime.now().toIso8601String()}',
+//           const NotificationDetails(
+//             android: AndroidNotificationDetails(
+//               notificationChannelId,
+//               'Just Think SERVICE',
+//               icon: 'ic_bg_service_small',
+//               ongoing: true,
+//             ),
+//           ),
+//         );
+//       }
+//     }
+//
+//     log("Awesome ${DateTime.now().toIso8601String()}");
+//
+//
+//     // test using external plugin
+//     final deviceInfo = DeviceInfoPlugin();
+//     String? device;
+//     if (Platform.isAndroid) {
+//       final androidInfo = await deviceInfo.androidInfo;
+//       device = androidInfo.model;
+//     } else if (Platform.isIOS) {
+//       final iosInfo = await deviceInfo.iosInfo;
+//       device = iosInfo.model;
+//     }
+//
+//     service.invoke(
+//       'update',
+//       {
+//         "current_date": DateTime.now().toIso8601String(),
+//         "device": device,
+//       },
+//     );
+//   });
+//
+// }
