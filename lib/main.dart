@@ -131,33 +131,25 @@ void onStart(ServiceInstance service) async {
   FlutterLocalNotificationsPlugin();
 
   // Listen to CurrentApp plugin's stream
-  currentApp.getForegroundAppStream().listen((currentAppName) {
-    if (currentAppName != null) {
-      log("Foreground App: $currentAppName");
-    }
-  });
-
-
-  Timer.periodic(const Duration(seconds: 1), (timer) async {
-    if (service is AndroidServiceInstance) {
-      if (await service.isForegroundService()) {
-        flutterLocalNotificationsPlugin.show(
-          notificationId,
-          'Just Think',
-          'Awesome ${DateTime.now()}',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              notificationChannelId,
-              'Just Think SERVICE',
-              icon: 'ic_bg_service_small',
-              ongoing: true,
-            ),
+  // Listen to CurrentApp plugin's stream and update the notification dynamically
+  currentApp.getForegroundAppStream().listen((packageName) {
+    if (packageName != null) {
+      // Update the notification with the current app name
+      flutterLocalNotificationsPlugin.show(
+        notificationId,
+        'Just Think',
+        'Current App: $packageName',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            notificationChannelId,
+            'Just Think SERVICE',
+            icon: 'ic_bg_service_small',
+            ongoing: true, // Keep the notification persistent
           ),
-        );
-      }
+        ),
+      );
+      log("Foreground App: $packageName");
     }
-
-    log("Awesome ${DateTime.now()}");
   });
 
 }
