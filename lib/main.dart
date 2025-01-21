@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:ui';
+import 'package:current_app/current_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -108,6 +109,8 @@ void onStart(ServiceInstance service) async {
   SharedPreferences preferences = await SharedPreferences.getInstance();
   await preferences.setString("hello", "world");
 
+  final CurrentApp currentApp = CurrentApp(); // Initialize CurrentApp plugin
+
 
 
   if (service is AndroidServiceInstance) {
@@ -126,6 +129,13 @@ void onStart(ServiceInstance service) async {
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
+
+  // Listen to CurrentApp plugin's stream
+  currentApp.getForegroundAppStream().listen((currentAppName) {
+    if (currentAppName != null) {
+      log("Foreground App: $currentAppName");
+    }
+  });
 
 
   Timer.periodic(const Duration(seconds: 1), (timer) async {
