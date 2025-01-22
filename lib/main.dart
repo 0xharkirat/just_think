@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:ui';
 import 'package:current_app/current_app.dart';
+import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -9,10 +10,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
 import 'package:just_think/src/core/app_theme.dart';
+import 'package:just_think/src/core/router.dart';
 import 'package:just_think/src/views/screens/foreground_app_screen.dart';
 import 'package:just_think/src/views/screens/home_screen.dart';
 import 'package:just_think/src/views/screens/overlay_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -40,13 +43,13 @@ class _MyAppState extends ConsumerState<MyApp> {
   Widget build(BuildContext context) {
     final themeState = ref.watch(themeController);
 
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Just Think',
       debugShowCheckedModeBanner: false,
       darkTheme: AppTheme.getDarkTheme(themeState.themeColor.materialColor),
       theme: AppTheme.getLightTheme(themeState.themeColor.materialColor),
       themeMode: themeState.themeMode.themeMode,
-      home: const ForegroundAppScreen(),
+      routerConfig: appRouter,
     );
   }
 }
@@ -142,10 +145,15 @@ void onStart(ServiceInstance service) async {
       //   ),
       // );
       // Navigate to the OverlayScreen
+      if (packageName == "com.google.android.youtube") {
+        currentApp.bringToForeground();
+      }
+
       log("Foreground App: $packageName");
     }
   });
 }
+
 
 
 // com.twitter.android
