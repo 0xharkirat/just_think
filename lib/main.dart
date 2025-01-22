@@ -11,17 +11,14 @@ import 'package:just_think/src/controllers/theme_controller.dart';
 import 'package:just_think/src/core/app_theme.dart';
 import 'package:just_think/src/views/screens/foreground_app_screen.dart';
 import 'package:just_think/src/views/screens/home_screen.dart';
-import 'package:just_think/src/views/screens/usage_permissions_screen.dart';
+import 'package:just_think/src/views/screens/overlay_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await initializeService();
-
   runApp(const ProviderScope(child: MyApp()));
-
-
 }
 
 class MyApp extends ConsumerStatefulWidget {
@@ -66,19 +63,17 @@ Future<void> initializeService() async {
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
     notificationChannelId, // id
     'Just Think Notifications', // title
-    description:
-    'Notification channel for Just Think App', // description
+    description: 'Notification channel for Just Think App', // description
     importance: Importance.low, // importance must be at low or higher level
   );
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
-
 
   await service.configure(
     androidConfiguration: AndroidConfiguration(
@@ -89,7 +84,7 @@ Future<void> initializeService() async {
       autoStart: true,
       isForegroundMode: true,
       notificationChannelId: notificationChannelId,
-      initialNotificationTitle: 'Just Think SERVICE',
+      initialNotificationTitle: 'Just Think',
       initialNotificationContent: 'Initializing',
       foregroundServiceNotificationId: notificationId,
       foregroundServiceTypes: [AndroidForegroundType.dataSync],
@@ -111,8 +106,6 @@ void onStart(ServiceInstance service) async {
 
   final CurrentApp currentApp = CurrentApp(); // Initialize CurrentApp plugin
 
-
-
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
       service.setAsForegroundService();
@@ -127,29 +120,33 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  // FlutterLocalNotificationsPlugin();
 
   // Listen to CurrentApp plugin's stream
   // Listen to CurrentApp plugin's stream and update the notification dynamically
   currentApp.getForegroundAppStream().listen((packageName) {
     if (packageName != null) {
       // Update the notification with the current app name
-      flutterLocalNotificationsPlugin.show(
-        notificationId,
-        'Just Think',
-        'Current App: $packageName',
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            notificationChannelId,
-            'Just Think SERVICE',
-            icon: 'ic_bg_service_small',
-            ongoing: true, // Keep the notification persistent
-          ),
-        ),
-      );
+      // flutterLocalNotificationsPlugin.show(
+      //   notificationId,
+      //   'Just Think',
+      //   'Current App: $packageName',
+      //   const NotificationDetails(
+      //     android: AndroidNotificationDetails(
+      //       notificationChannelId,
+      //       'Just Think SERVICE',
+      //       icon: 'ic_bg_service_small',
+      //       ongoing: true, // Keep the notification persistent
+      //     ),
+      //   ),
+      // );
+      // Navigate to the OverlayScreen
       log("Foreground App: $packageName");
     }
   });
-
 }
+
+
+// com.twitter.android
+// com.google.android.youtube
