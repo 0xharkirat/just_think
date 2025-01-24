@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:developer';
 import 'dart:ui';
 import 'package:current_app/current_app.dart';
@@ -7,13 +8,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:isar/isar.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
 import 'package:just_think/src/core/app_theme.dart';
 import 'package:just_think/src/core/router.dart';
+import 'package:just_think/src/models/app_info_wrapper.dart';
 import 'package:just_think/src/views/screens/foreground_app_screen.dart';
 import 'package:just_think/src/views/screens/home_screen.dart';
 import 'package:just_think/src/views/screens/overlay_screen.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -36,7 +41,8 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     // Todo: uncomment this after permissions settings are implemented
-    // ref.read(installedAppsController);
+    ref.read(installedAppsController);
+     
   }
 
   @override
@@ -104,10 +110,32 @@ void onStart(ServiceInstance service) async {
   // For flutter prior to version 3.0.0
   // We have to register the plugin manually
 
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.setString("hello", "world");
+
+
 
   final CurrentApp currentApp = CurrentApp(); // Initialize CurrentApp plugin
+
+// Open a new Isar instance in the service isolate
+  final dir = await getApplicationDocumentsDirectory();
+  final isar = await Isar.open([AppInfoWrapperSchema], directory: dir.path);
+
+  // Watch for changes in the appInfoWrappers collection
+  final collectionStream = isar.appInfoWrappers.watchLazy();
+  final Set<String> packageNames = {}; // Keep track of current package names in the database
+  final storedWrappers = await isar.appInfoWrappers.where().findAll();
+    packageNames.clear(); // Clear the previous set of package names
+    packageNames.addAll(storedWrappers.map((wrapper) => wrapper.packageName));
+    log("Updated Package Names when initializing: $packageNames");
+
+  // Listen for changes in the database
+  collectionStream.listen((_) async {
+
+    final storedWrappers = await isar.appInfoWrappers.where().findAll();
+    packageNames.clear(); // Clear the previous set of package names
+    packageNames.addAll(storedWrappers.map((wrapper) => wrapper.packageName));
+    log("Updated Package Names in the stream: $packageNames");
+  });
+
 
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
@@ -119,7 +147,8 @@ void onStart(ServiceInstance service) async {
     });
   }
 
-  service.on('stopService').listen((event) {
+  service.on('stopService').listen((event) async {
+    await isar.close();
     service.stopSelf();
   });
 
@@ -128,7 +157,7 @@ void onStart(ServiceInstance service) async {
 
   // Listen to CurrentApp plugin's stream
   // Listen to CurrentApp plugin's stream and update the notification dynamically
-  currentApp.getForegroundAppStream().listen((packageName) {
+  currentApp.getForegroundAppStream().listen((packageName) async {
     if (packageName != null) {
       // Update the notification with the current app name
       // flutterLocalNotificationsPlugin.show(
@@ -145,16 +174,21 @@ void onStart(ServiceInstance service) async {
       //   ),
       // );
       // Navigate to the OverlayScreen
-      if (packageName == "com.google.android.youtube") {
-        currentApp.bringToForeground();
+      if (packageNames.contains(packageName)) {
+        log("Match Found! Foreground App is in the database: $packageName");
+
+        // Bring the app to the foreground and handle logic
+        await currentApp.bringToForeground();
+        service.invoke('redirectToOverlay', {'packageName': packageName});
+      } else {
+        log("No match found for the foreground app: $packageName");
       }
 
-      log("Foreground App: $packageName");
+      
     }
   });
 }
 
 
 
-// com.twitter.android
-// com.google.android.youtube
+
