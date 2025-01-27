@@ -1,28 +1,20 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:developer';
 import 'dart:ui';
 import 'package:current_app/current_app.dart';
-import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:isar/isar.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
 import 'package:just_think/src/core/app_theme.dart';
 import 'package:just_think/src/core/router.dart';
 import 'package:just_think/src/models/app_info_wrapper.dart';
-import 'package:just_think/src/views/screens/foreground_app_screen.dart';
-import 'package:just_think/src/views/screens/home_screen.dart';
-import 'package:just_think/src/views/screens/overlay_screen.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeService();
@@ -109,10 +101,6 @@ void onStart(ServiceInstance service) async {
 
   // For flutter prior to version 3.0.0
   // We have to register the plugin manually
-
-
-
-
   final CurrentApp currentApp = CurrentApp(); // Initialize CurrentApp plugin
 
 // Open a new Isar instance in the service isolate
@@ -152,27 +140,11 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  // FlutterLocalNotificationsPlugin();
-
-  // Listen to CurrentApp plugin's stream
+ 
   // Listen to CurrentApp plugin's stream and update the notification dynamically
   currentApp.getForegroundAppStream().listen((packageName) async {
     if (packageName != null) {
-      // Update the notification with the current app name
-      // flutterLocalNotificationsPlugin.show(
-      //   notificationId,
-      //   'Just Think',
-      //   'Current App: $packageName',
-      //   const NotificationDetails(
-      //     android: AndroidNotificationDetails(
-      //       notificationChannelId,
-      //       'Just Think SERVICE',
-      //       icon: 'ic_bg_service_small',
-      //       ongoing: true, // Keep the notification persistent
-      //     ),
-      //   ),
-      // );
+      
       // Navigate to the OverlayScreen
       if (packageNames.contains(packageName)) {
         log("Match Found! Foreground App is in the database: $packageName");
@@ -189,6 +161,19 @@ void onStart(ServiceInstance service) async {
   });
 }
 
-
+// Update the notification with the current app name
+      // flutterLocalNotificationsPlugin.show(
+      //   notificationId,
+      //   'Just Think',
+      //   'Current App: $packageName',
+      //   const NotificationDetails(
+      //     android: AndroidNotificationDetails(
+      //       notificationChannelId,
+      //       'Just Think SERVICE',
+      //       icon: 'ic_bg_service_small',
+      //       ongoing: true, // Keep the notification persistent
+      //     ),
+      //   ),
+      // );
 
 

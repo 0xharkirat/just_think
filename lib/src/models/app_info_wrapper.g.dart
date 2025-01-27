@@ -21,6 +21,11 @@ const AppInfoWrapperSchema = CollectionSchema(
       id: 0,
       name: r'packageName',
       type: IsarType.string,
+    ),
+    r'shouldBlock': PropertySchema(
+      id: 1,
+      name: r'shouldBlock',
+      type: IsarType.bool,
     )
   },
   estimateSize: _appInfoWrapperEstimateSize,
@@ -68,6 +73,7 @@ void _appInfoWrapperSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.packageName);
+  writer.writeBool(offsets[1], object.shouldBlock);
 }
 
 AppInfoWrapper _appInfoWrapperDeserialize(
@@ -79,6 +85,7 @@ AppInfoWrapper _appInfoWrapperDeserialize(
   final object = AppInfoWrapper();
   object.id = id;
   object.packageName = reader.readString(offsets[0]);
+  object.shouldBlock = reader.readBool(offsets[1]);
   return object;
 }
 
@@ -91,6 +98,8 @@ P _appInfoWrapperDeserializeProp<P>(
   switch (propertyId) {
     case 0:
       return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -484,6 +493,16 @@ extension AppInfoWrapperQueryFilter
       ));
     });
   }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      shouldBlockEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'shouldBlock',
+        value: value,
+      ));
+    });
+  }
 }
 
 extension AppInfoWrapperQueryObject
@@ -505,6 +524,20 @@ extension AppInfoWrapperQuerySortBy
       sortByPackageNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'packageName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy>
+      sortByShouldBlock() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'shouldBlock', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy>
+      sortByShouldBlockDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'shouldBlock', Sort.desc);
     });
   }
 }
@@ -536,6 +569,20 @@ extension AppInfoWrapperQuerySortThenBy
       return query.addSortBy(r'packageName', Sort.desc);
     });
   }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy>
+      thenByShouldBlock() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'shouldBlock', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy>
+      thenByShouldBlockDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'shouldBlock', Sort.desc);
+    });
+  }
 }
 
 extension AppInfoWrapperQueryWhereDistinct
@@ -544,6 +591,13 @@ extension AppInfoWrapperQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'packageName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QDistinct>
+      distinctByShouldBlock() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'shouldBlock');
     });
   }
 }
@@ -559,6 +613,12 @@ extension AppInfoWrapperQueryProperty
   QueryBuilder<AppInfoWrapper, String, QQueryOperations> packageNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'packageName');
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, bool, QQueryOperations> shouldBlockProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'shouldBlock');
     });
   }
 }
