@@ -19,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
 
+
   final _currentApp = CurrentApp();
 
   void redirectToUsageAccessSettings() async {
@@ -28,13 +29,14 @@ class _HomeScreenState extends State<HomeScreen> {
       log("Failed to open app settings: ${e.message}");
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text("Just Think"),
-        actions:  [
+        actions: [
           ThemeColorSwitch(),
           ThemeModeSwitch(),
           IconButton(
@@ -43,7 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           IconButton(
             onPressed: () {
-              context.go('/overlay');
+              // context.go('/overlay');
+              context.go(Uri(
+                      path: '/overlay',
+                      queryParameters: {'packageName': 'com.twitter.android'})
+                  .toString());
             },
             icon: Icon(Icons.open_in_browser),
           ),

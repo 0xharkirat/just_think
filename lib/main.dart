@@ -29,17 +29,36 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
+
+  final FlutterBackgroundService service = FlutterBackgroundService();
+
+  // stream to listen to the current app
+  late StreamSubscription<dynamic> _streamSubscription;
+
   @override
   void initState() {
     super.initState();
-    // Todo: uncomment this after permissions settings are implemented
     ref.read(installedAppsController);
+    _streamSubscription = service.on('redirectToOverlay').listen((event) {
+      log("Event Received: $event");
+      if (event != null) {
+        ref.read(blockedAppStateProvider.notifier).state = event['packageName'];
+      }
+    });
      
+  }
+
+  @override
+  void dispose() {
+    
+    super.dispose();
+    _streamSubscription.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
     final themeState = ref.watch(themeController);
+    final appRouter = ref.watch(goRouter);
 
     return MaterialApp.router(
       title: 'Just Think',
