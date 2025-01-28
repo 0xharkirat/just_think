@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_think/src/controllers/blocked_app_controller.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/selected_apps_controller.dart';
-import 'package:just_think/src/core/router.dart';
+
 
 class OverlayScreen extends ConsumerWidget {
   const OverlayScreen({super.key});
@@ -23,11 +24,13 @@ class OverlayScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final packageName = ref.watch(blockedAppStateProvider);
+    final blockedApp = ref.watch(blockedAppController);
+    final packageName = blockedApp?[0];
+    final appName = blockedApp?[1];
 
     return WillPopScope(
       onWillPop: () async {
-        ref.read(blockedAppStateProvider.notifier).state = null;
+        ref.read(blockedAppController.notifier).removeBlockedApp();
         goToHomeScreen();
 
         return false;
@@ -37,26 +40,26 @@ class OverlayScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Do you want to open $packageName?"),
+              Text("Do you want to open $appName?"),
               ElevatedButton(
                   onPressed: () async {
                     await ref
                         .read(selectedAppsController.notifier)
                         .unblockApp(packageName!);
-                    ref.read(blockedAppStateProvider.notifier).state = null;
+                    ref.read(blockedAppController.notifier).removeBlockedApp();
                     ref
                         .read(installedAppsController.notifier)
                         .openApp(packageName);
                   },
-                  child: Text("Yes, Open $packageName")),
+                  child: Text("Yes, Open $appName")),
 
               // create a button to close the twitter
               ElevatedButton(
                   onPressed: () {
-                    ref.read(blockedAppStateProvider.notifier).state = null;
+                    ref.read(blockedAppController.notifier).removeBlockedApp();
                     goToHomeScreen();
                   },
-                  child: Text("No, Close $packageName")),
+                  child: Text("No, Close $appName")),
             ],
           ),
         ),

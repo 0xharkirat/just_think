@@ -7,13 +7,13 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+import 'package:just_think/src/controllers/blocked_app_controller.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
 import 'package:just_think/src/core/app_theme.dart';
 import 'package:just_think/src/core/router.dart';
 import 'package:just_think/src/models/app_info_wrapper.dart';
 import 'package:path_provider/path_provider.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +29,6 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
-
   final FlutterBackgroundService service = FlutterBackgroundService();
 
   // stream to listen to the current app
@@ -42,15 +41,15 @@ class _MyAppState extends ConsumerState<MyApp> {
     _streamSubscription = service.on('redirectToOverlay').listen((event) {
       log("Event Received: $event");
       if (event != null) {
-        ref.read(blockedAppStateProvider.notifier).state = event['packageName'];
+        final packageName = event['packageName'];
+        final appName = event['appName'];
+        ref.read(blockedAppController.notifier).setBlockedApp(packageName, appName);
       }
     });
-     
   }
 
   @override
   void dispose() {
-    
     super.dispose();
     _streamSubscription.cancel();
   }
@@ -128,25 +127,29 @@ void onStart(ServiceInstance service) async {
 
   // Watch for changes in the appInfoWrappers collection
   final collectionStream = isar.appInfoWrappers.watchLazy();
-  final Map<String, bool> packageNames = {}; // Keep track of current package names in the database
+  final Map<String, Map<String, dynamic>> packageNames = {}; // Updated map
   final storedWrappers = await isar.appInfoWrappers.where().findAll();
-    packageNames.clear(); // Clear the previous set of package names
-    for (var wrapper in storedWrappers) {
-      packageNames[wrapper.packageName] = wrapper.shouldBlock;
-    }
-    log("Updated Package Names when initializing: $packageNames");
+  packageNames.clear(); // Clear the previous set of package names
+  for (var wrapper in storedWrappers) {
+    packageNames[wrapper.packageName] = {
+      "appName": wrapper.appName, // Assuming wrapper contains appName
+      "shouldBlock": wrapper.shouldBlock,
+    };
+  }
+  log("Updated Package Names when initializing: $packageNames");
 
   // Listen for changes in the database
   collectionStream.listen((_) async {
-
     final storedWrappers = await isar.appInfoWrappers.where().findAll();
     packageNames.clear(); // Clear the previous set of package names
     for (var wrapper in storedWrappers) {
-      packageNames[wrapper.packageName] = wrapper.shouldBlock;
+      packageNames[wrapper.packageName] = {
+        "appName": wrapper.appName, // Assuming wrapper contains appName
+        "shouldBlock": wrapper.shouldBlock,
+      };
     }
     log("Updated Package Names in the stream: $packageNames");
   });
-
 
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
@@ -163,40 +166,38 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
- 
   // Listen to CurrentApp plugin's stream and update the notification dynamically
   currentApp.getForegroundAppStream().listen((packageName) async {
     if (packageName != null) {
-      
       // Navigate to the OverlayScreen
       if (packageNames.containsKey(packageName)) {
         log("Match Found! Foreground App is in the database: $packageName");
 
         // Bring the app to the foreground and handle logic
 
-        if (packageNames[packageName] == true) {
+        if (packageNames[packageName]!['shouldBlock'] == true) {
           log("Blocking the app: $packageName");
           await currentApp.bringToForeground();
-          service.invoke('redirectToOverlay', {'packageName': packageName});
+          service.invoke('redirectToOverlay', {'packageName': packageName, 'appName': packageNames[packageName]!['appName']});
         } else {
           log("Not blocking the app: $packageName");
+
           /// change the shouldyBlock value true again.
           /// TODO: We need to maybe add a 5 second timer to block the app again if the required action is not taken
-          final wrapper = await isar.appInfoWrappers.filter().packageNameEqualTo(packageName).findFirst();
+          final wrapper = await isar.appInfoWrappers
+              .filter()
+              .packageNameEqualTo(packageName)
+              .findFirst();
           if (wrapper != null) {
             await isar.writeTxn(() async {
               wrapper.shouldBlock = true;
               isar.appInfoWrappers.put(wrapper);
             });
           }
-         
         }
-        
       } else {
         log("No match found for the foreground app: $packageName");
       }
-
-      
     }
   });
 }

@@ -17,13 +17,18 @@ const AppInfoWrapperSchema = CollectionSchema(
   name: r'AppInfoWrapper',
   id: 4926694402024378538,
   properties: {
-    r'packageName': PropertySchema(
+    r'appName': PropertySchema(
       id: 0,
+      name: r'appName',
+      type: IsarType.string,
+    ),
+    r'packageName': PropertySchema(
+      id: 1,
       name: r'packageName',
       type: IsarType.string,
     ),
     r'shouldBlock': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'shouldBlock',
       type: IsarType.bool,
     )
@@ -62,6 +67,7 @@ int _appInfoWrapperEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.appName.length * 3;
   bytesCount += 3 + object.packageName.length * 3;
   return bytesCount;
 }
@@ -72,8 +78,9 @@ void _appInfoWrapperSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.packageName);
-  writer.writeBool(offsets[1], object.shouldBlock);
+  writer.writeString(offsets[0], object.appName);
+  writer.writeString(offsets[1], object.packageName);
+  writer.writeBool(offsets[2], object.shouldBlock);
 }
 
 AppInfoWrapper _appInfoWrapperDeserialize(
@@ -83,9 +90,10 @@ AppInfoWrapper _appInfoWrapperDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AppInfoWrapper();
+  object.appName = reader.readString(offsets[0]);
   object.id = id;
-  object.packageName = reader.readString(offsets[0]);
-  object.shouldBlock = reader.readBool(offsets[1]);
+  object.packageName = reader.readString(offsets[1]);
+  object.shouldBlock = reader.readBool(offsets[2]);
   return object;
 }
 
@@ -99,6 +107,8 @@ P _appInfoWrapperDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
       return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -303,6 +313,142 @@ extension AppInfoWrapperQueryWhere
 
 extension AppInfoWrapperQueryFilter
     on QueryBuilder<AppInfoWrapper, AppInfoWrapper, QFilterCondition> {
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'appName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'appName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'appName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'appName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'appName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'appName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'appName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'appName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'appName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition>
+      appNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'appName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -513,6 +659,19 @@ extension AppInfoWrapperQueryLinks
 
 extension AppInfoWrapperQuerySortBy
     on QueryBuilder<AppInfoWrapper, AppInfoWrapper, QSortBy> {
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy> sortByAppName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'appName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy>
+      sortByAppNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'appName', Sort.desc);
+    });
+  }
+
   QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy>
       sortByPackageName() {
     return QueryBuilder.apply(this, (query) {
@@ -544,6 +703,19 @@ extension AppInfoWrapperQuerySortBy
 
 extension AppInfoWrapperQuerySortThenBy
     on QueryBuilder<AppInfoWrapper, AppInfoWrapper, QSortThenBy> {
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy> thenByAppName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'appName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy>
+      thenByAppNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'appName', Sort.desc);
+    });
+  }
+
   QueryBuilder<AppInfoWrapper, AppInfoWrapper, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -587,6 +759,13 @@ extension AppInfoWrapperQuerySortThenBy
 
 extension AppInfoWrapperQueryWhereDistinct
     on QueryBuilder<AppInfoWrapper, AppInfoWrapper, QDistinct> {
+  QueryBuilder<AppInfoWrapper, AppInfoWrapper, QDistinct> distinctByAppName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'appName', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<AppInfoWrapper, AppInfoWrapper, QDistinct> distinctByPackageName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -607,6 +786,12 @@ extension AppInfoWrapperQueryProperty
   QueryBuilder<AppInfoWrapper, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<AppInfoWrapper, String, QQueryOperations> appNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'appName');
     });
   }
 
