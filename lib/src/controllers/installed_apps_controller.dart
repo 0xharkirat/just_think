@@ -40,6 +40,11 @@ class InstalledAppsController extends AsyncNotifier<Map<String, AppInfo>> {
   Future<AppInfo> getAppInfo(String packageName) async {
     return (await InstalledApps.getAppInfo(packageName))!;
   }
+
+  // open app
+  Future<void> openApp(String packageName) async {
+    await InstalledApps.startApp(packageName);
+  }
 }
 
 final installedAppsController =
