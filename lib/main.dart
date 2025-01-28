@@ -109,10 +109,12 @@ void onStart(ServiceInstance service) async {
 
   // Watch for changes in the appInfoWrappers collection
   final collectionStream = isar.appInfoWrappers.watchLazy();
-  final Set<String> packageNames = {}; // Keep track of current package names in the database
+  final Map<String, bool> packageNames = {}; // Keep track of current package names in the database
   final storedWrappers = await isar.appInfoWrappers.where().findAll();
     packageNames.clear(); // Clear the previous set of package names
-    packageNames.addAll(storedWrappers.map((wrapper) => wrapper.packageName));
+    for (var wrapper in storedWrappers) {
+      packageNames[wrapper.packageName] = wrapper.shouldBlock;
+    }
     log("Updated Package Names when initializing: $packageNames");
 
   // Listen for changes in the database
@@ -120,7 +122,9 @@ void onStart(ServiceInstance service) async {
 
     final storedWrappers = await isar.appInfoWrappers.where().findAll();
     packageNames.clear(); // Clear the previous set of package names
-    packageNames.addAll(storedWrappers.map((wrapper) => wrapper.packageName));
+    for (var wrapper in storedWrappers) {
+      packageNames[wrapper.packageName] = wrapper.shouldBlock;
+    }
     log("Updated Package Names in the stream: $packageNames");
   });
 
@@ -146,12 +150,29 @@ void onStart(ServiceInstance service) async {
     if (packageName != null) {
       
       // Navigate to the OverlayScreen
-      if (packageNames.contains(packageName)) {
+      if (packageNames.containsKey(packageName)) {
         log("Match Found! Foreground App is in the database: $packageName");
 
         // Bring the app to the foreground and handle logic
-        await currentApp.bringToForeground();
-        service.invoke('redirectToOverlay', {'packageName': packageName});
+
+        if (packageNames[packageName] == true) {
+          log("Blocking the app: $packageName");
+          await currentApp.bringToForeground();
+          service.invoke('redirectToOverlay', {'packageName': packageName});
+        } else {
+          log("Not blocking the app: $packageName");
+          /// change the shouldyBlock value true again.
+          /// TODO: We need to maybe add a 5 second timer to block the app again if the required action is not taken
+          final wrapper = await isar.appInfoWrappers.filter().packageNameEqualTo(packageName).findFirst();
+          if (wrapper != null) {
+            await isar.writeTxn(() async {
+              wrapper.shouldBlock = true;
+              isar.appInfoWrappers.put(wrapper);
+            });
+          }
+         
+        }
+        
       } else {
         log("No match found for the foreground app: $packageName");
       }
