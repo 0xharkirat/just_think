@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_think/src/controllers/blocked_app_controller.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/selected_apps_controller.dart';
+import 'package:just_think/src/controllers/theme_controller.dart';
+import 'package:just_think/src/core/app_theme.dart';
 import 'package:mesh_gradient/mesh_gradient.dart';
 
 class OverlayScreen extends ConsumerWidget {
@@ -29,6 +31,7 @@ class OverlayScreen extends ConsumerWidget {
     final packageName = blockedApp?[0];
     final appName = blockedApp?[1];
     Animate.restartOnHotReload = true;
+    final themeMode = ref.watch(themeController).themeMode; 
 
     return WillPopScope(
       onWillPop: () async {
@@ -48,7 +51,7 @@ class OverlayScreen extends ConsumerWidget {
           grain: 0.2,
         ),
         child: Scaffold(
-          backgroundColor: Colors.black45,
+          backgroundColor:  themeMode == AppThemeMode.light? Colors.transparent: Colors.black45,
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
             child: Center(
@@ -70,7 +73,7 @@ class OverlayScreen extends ConsumerWidget {
                       text: "Are you sure you want to open",
                       children: [
                         TextSpan(
-                          text: " $appName",
+                          text: "\n$appName",
                           style: Theme.of(context).textTheme.titleLarge!.copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                               ),
