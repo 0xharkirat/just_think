@@ -1,4 +1,4 @@
-package com.example.just_think
+package com.hsi.harki.just_think
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,7 +7,7 @@ import io.flutter.embedding.android.FlutterActivity
 
 
 class MainActivity: FlutterActivity() {
-    private val CHANNEL = "com.example.just_think/navigation"
+    private val CHANNEL = "com.hsi.harki.just_think/navigation"
 
     override fun configureFlutterEngine(flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

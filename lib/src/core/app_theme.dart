@@ -59,7 +59,7 @@ extension ThemeColorExtension on ThemeColor {
       case ThemeColor.blue:
         return Colors.blueAccent;
       default:
-        return Colors.deepPurpleAccent;
+        return Colors.greenAccent;
     }
   }
 }

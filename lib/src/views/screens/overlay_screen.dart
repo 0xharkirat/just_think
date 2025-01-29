@@ -13,7 +13,7 @@ class OverlayScreen extends ConsumerWidget {
   const OverlayScreen({super.key});
 
   static const MethodChannel _channel =
-      MethodChannel('com.example.just_think/navigation');
+      MethodChannel('com.hsi.harki.just_think/navigation');
 
   /// Navigate to the phone's home screen
   static Future<void> goToHomeScreen() async {
