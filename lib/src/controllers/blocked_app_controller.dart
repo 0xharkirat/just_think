@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_think/src/models/blocked_app.dart';
 
-
-class BlockedAppController extends Notifier<List<String>?> {
+class BlockedAppController extends Notifier<BlockedApp?> {
   @override
-  List<String>? build() {
+  BlockedApp? build() {
     return null;
   }
 
   void setBlockedApp(String packageName, String appName) {
-    state = [packageName, appName];
+    state = BlockedApp(packageName: packageName, appName: appName);
   }
 
   void removeBlockedApp() {
@@ -17,6 +17,6 @@ class BlockedAppController extends Notifier<List<String>?> {
 }
 
 final blockedAppController =
-    NotifierProvider<BlockedAppController, List<String>?>(() {
+    NotifierProvider<BlockedAppController, BlockedApp?>(() {
   return BlockedAppController();
 });

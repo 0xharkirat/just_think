@@ -20,7 +20,6 @@ class OverlayScreen extends ConsumerWidget {
     try {
       await _channel.invokeMethod('goToHome');
     } on PlatformException catch (e) {
-      // Handle any errors
       debugPrint("Failed to go to home screen: ${e.message}");
     }
   }
@@ -28,17 +27,18 @@ class OverlayScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final blockedApp = ref.watch(blockedAppController);
-    final packageName = blockedApp?[0];
-    final appName = blockedApp?[1];
+    final packageName = blockedApp?.packageName;
+    final appName = blockedApp?.appName;
     Animate.restartOnHotReload = true;
-    final themeMode = ref.watch(themeController).themeMode; 
+    final themeMode = ref.watch(themeController).themeMode;
 
-    return WillPopScope(
-      onWillPop: () async {
-        ref.read(blockedAppController.notifier).removeBlockedApp();
-        goToHomeScreen();
-
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          ref.read(blockedAppController.notifier).removeBlockedApp();
+          goToHomeScreen();
+        }
       },
       child: AnimatedMeshGradient(
         colors: [

@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:current_app/current_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:just_think/src/views/widgets/all_apps_widget.dart';
 import 'package:just_think/src/views/widgets/selected_apps_widget.dart';
 import 'package:just_think/src/views/widgets/theme_color_switch.dart';
@@ -17,9 +16,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-
-
   final _currentApp = CurrentApp();
 
   void redirectToUsageAccessSettings() async {
@@ -41,17 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ThemeModeSwitch(),
           IconButton(
             onPressed: redirectToUsageAccessSettings,
-            icon: Icon(Icons.settings),
-          ),
-          IconButton(
-            onPressed: () {
-              // context.go('/overlay');
-              context.go(Uri(
-                      path: '/overlay',
-                      queryParameters: {'packageName': 'com.twitter.android'})
-                  .toString());
-            },
-            icon: Icon(Icons.open_in_browser),
+            icon: const Icon(Icons.settings),
+            tooltip: 'Usage access settings',
           ),
         ],
       ),

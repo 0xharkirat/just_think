@@ -8,29 +8,38 @@ import 'package:just_think/src/views/screens/overlay_screen.dart';
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final goRouter = Provider<GoRouter>((ref) {
-  final blockedApp = ref.watch(blockedAppController);
+  final notifier = _RouterNotifier(ref);
 
   return GoRouter(
     navigatorKey: navigatorKey,
     debugLogDiagnostics: true,
     initialLocation: '/',
+    refreshListenable: notifier,
     redirect: (context, state) {
-      // Redirect to overlay if there's a blocked app
+      final blockedApp = ref.read(blockedAppController);
+
       if (blockedApp != null && !state.matchedLocation.contains("/overlay")) {
         return '/overlay';
       }
 
-      // Redirect to home if no app is blocked
       if (blockedApp == null && state.matchedLocation.contains('/overlay')) {
         return '/';
       }
 
-      return null; // No redirection needed
+      return null;
     },
     routes: [
-      // create a go router for the overlay screen
-      GoRoute(path: '/overlay', builder: (context, state) => OverlayScreen()),
-      GoRoute(path: '/', builder: (context, state) => HomeScreen()),
+      GoRoute(path: '/overlay', builder: (context, state) => const OverlayScreen()),
+      GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
     ],
   );
 });
+
+/// Listens to [blockedAppController] and notifies GoRouter to re-evaluate redirects.
+class _RouterNotifier extends ChangeNotifier {
+  _RouterNotifier(Ref ref) {
+    ref.listen(blockedAppController, (_, __) {
+      notifyListeners();
+    });
+  }
+}
