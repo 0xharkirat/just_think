@@ -25,7 +25,7 @@ class ThemeController extends Notifier<ThemeState> {
 
     final themeColor = ThemeColor.values.firstWhere(
       (e) => e.name == colorName,
-      orElse: () => ThemeColor.purple,
+      orElse: () => ThemeColor.green,
     );
 
     state = ThemeState(themeMode, themeColor);

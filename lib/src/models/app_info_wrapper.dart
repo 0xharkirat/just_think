@@ -9,16 +9,24 @@ class AppInfoWrapper {
 
   @Index(unique: true) // Ensures packageName is unique
   late String packageName;
+  
+  /// App name
+  late String appName;
+
+  // add a bool shouldBlock field
+  bool shouldBlock = true;
 
   AppInfoWrapper();
 
   /// Convert from `AppInfo`
   AppInfoWrapper.fromAppInfo(AppInfo appInfo) {
     packageName = appInfo.packageName;
+    appName = appInfo.name;
+    
   }
 
   @override
   String toString() {
-    return 'AppInfoWrapper{packageName: $packageName}';
+    return 'AppInfoWrapper{packageName: $packageName, shouldBlock: $shouldBlock, appName: $appName}';
   }
 }

@@ -6,7 +6,7 @@ enum AppThemeMode { system, light, dark }
 enum ThemeColor { purple, orange, pink, yellow, green, blue }
 
 class AppTheme {
-  static ThemeData getLightTheme(MaterialColor seedColor) {
+  static ThemeData getLightTheme(MaterialAccentColor seedColor) {
     return ThemeData(
       colorScheme: ColorScheme.fromSeed(
         seedColor: seedColor,
@@ -17,7 +17,7 @@ class AppTheme {
     );
   }
 
-  static ThemeData getDarkTheme(MaterialColor seedColor) {
+  static ThemeData getDarkTheme(MaterialAccentColor seedColor) {
     return ThemeData(
       colorScheme: ColorScheme.fromSeed(
         seedColor: seedColor,
@@ -43,22 +43,23 @@ extension AppThemeModeExtension on AppThemeMode {
 }
 
 extension ThemeColorExtension on ThemeColor {
-  MaterialColor get materialColor {
+  MaterialAccentColor get materialColor {
     switch (this) {
+
       case ThemeColor.purple:
-        return Colors.deepPurple;
+        return Colors.deepPurpleAccent;
       case ThemeColor.orange:
-        return Colors.deepOrange;
+        return Colors.deepOrangeAccent;
       case ThemeColor.pink:
-        return Colors.pink;
+        return Colors.pinkAccent;
       case ThemeColor.yellow:
-        return Colors.yellow;
+        return Colors.yellowAccent;
       case ThemeColor.green:
-        return Colors.green;
+        return Colors.greenAccent;
       case ThemeColor.blue:
-        return Colors.blue;
+        return Colors.blueAccent;
       default:
-        return Colors.deepPurple;
+        return Colors.greenAccent;
     }
   }
 }

@@ -91,6 +91,25 @@ class SelectedAppsController extends AsyncNotifier<Map<String, AppInfo>> {
 
     return validatedApps;
   }
+
+  //change the app's shouldBlock value to false, with log
+
+  Future<void> unblockApp(String key) async {
+    final wrapper = await _isar.appInfoWrappers.filter().packageNameEqualTo(key).findFirst();
+    log("Unblocking the app: $key");
+    log("wrapper: $wrapper");
+    if (wrapper != null) {
+      
+      await _isar.writeTxn(() async {
+        wrapper.shouldBlock = false;
+        log("wrapper.shouldBlock: ${wrapper.shouldBlock}");
+        _isar.appInfoWrappers.put(wrapper);
+        log("$wrapper is unblocked");
+      });
+    }
+  }
+
+
 }
 
 final selectedAppsController =
