@@ -2,10 +2,11 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_think/src/controllers/blocked_app_controller.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
+import 'package:just_think/src/controllers/selected_apps_controller.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
 import 'package:just_think/src/core/app_theme.dart';
 import 'package:just_think/src/core/background_service.dart';
@@ -25,29 +26,36 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
-  final FlutterBackgroundService _service = FlutterBackgroundService();
-  late StreamSubscription<dynamic> _streamSubscription;
+  static const _eventChannel =
+      EventChannel('com.hsi.harki.just_think/blocked_app_events');
+  StreamSubscription? _eventSubscription;
 
   @override
   void initState() {
     super.initState();
     ref.read(installedAppsController);
-    _streamSubscription = _service.on('redirectToOverlay').listen((event) {
-      log("Event Received: $event");
-      if (event == null) return;
-      final packageName = event['packageName'] as String?;
-      final appName = event['appName'] as String?;
-      if (packageName != null && appName != null) {
-        ref
-            .read(blockedAppController.notifier)
-            .setBlockedApp(packageName, appName);
+
+    // Listen for blocked app events from native AccessibilityService
+    _eventSubscription = _eventChannel.receiveBroadcastStream().listen((event) {
+      log("Blocked app event received: $event");
+      if (event is Map) {
+        final packageName = event['packageName'] as String?;
+        if (packageName != null) {
+          // Look up the app name from selected apps
+          final selectedApps = ref.read(selectedAppsController);
+          final appName =
+              selectedApps.asData?.value[packageName]?.name ?? packageName;
+          ref
+              .read(blockedAppController.notifier)
+              .setBlockedApp(packageName, appName);
+        }
       }
     });
   }
 
   @override
   void dispose() {
-    _streamSubscription.cancel();
+    _eventSubscription?.cancel();
     super.dispose();
   }
 

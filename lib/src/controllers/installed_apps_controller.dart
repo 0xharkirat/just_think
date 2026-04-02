@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 
-
 class InstalledAppsController extends AsyncNotifier<Map<String, AppInfo>> {
   @override
   Future<Map<String, AppInfo>> build() async {
@@ -15,11 +14,11 @@ class InstalledAppsController extends AsyncNotifier<Map<String, AppInfo>> {
   }) async {
     try {
       final installedApps = await InstalledApps.getInstalledApps(
-        excludeSystemApps,
-        withIcon,
+        excludeSystemApps: excludeSystemApps,
+        withIcon: withIcon,
       );
 
-      final Map<String, AppInfo> installedAppsMap =  {
+      final Map<String, AppInfo> installedAppsMap = {
         for (final app in installedApps) app.packageName: app,
       };
       return installedAppsMap;
@@ -48,4 +47,5 @@ class InstalledAppsController extends AsyncNotifier<Map<String, AppInfo>> {
 }
 
 final installedAppsController =
-    AsyncNotifierProvider<InstalledAppsController, Map<String, AppInfo>>(() => InstalledAppsController());
+    AsyncNotifierProvider<InstalledAppsController, Map<String, AppInfo>>(
+        () => InstalledAppsController());

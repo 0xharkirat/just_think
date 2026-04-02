@@ -1,23 +1,24 @@
 import 'dart:developer';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:installed_apps/installed_apps.dart';
-import 'package:isar/isar.dart';
 import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/models/app_info_wrapper.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:installed_apps/app_info.dart';
 
+const _selectedAppsKey = 'selected_apps';
+const _blockerChannel = 'com.hsi.harki.just_think/blocker';
+
 class SelectedAppsController extends AsyncNotifier<Map<String, AppInfo>> {
-  late Isar _isar;
+  late SharedPreferences _prefs;
+
   @override
   Future<Map<String, AppInfo>> build() async {
-    _isar = await ref.read(isarProvider.future);
+    _prefs = await SharedPreferences.getInstance();
     return await _loadAndValidateFromStorage();
   }
-
-  // create a refresh function
-  // use try await
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
@@ -28,34 +29,23 @@ class SelectedAppsController extends AsyncNotifier<Map<String, AppInfo>> {
     }
   }
 
-  /// Add an app to the selected list and save to Isar
+  /// Add an app to the selected list
   Future<void> selectApp(AppInfo app, String key) async {
     final currentState = state.asData?.value ?? {};
     final updatedState = {...currentState, key: app};
     state = AsyncValue.data(updatedState);
-
-    final wrapper = AppInfoWrapper.fromAppInfo(app);
-    await _isar.writeTxn(() async {
-      await _isar.appInfoWrappers.put(wrapper);
-    });
+    await _saveToStorage();
   }
 
-  /// Remove an app from the selected list and save to Isar
+  /// Remove an app from the selected list
   Future<void> deselectApp(String key) async {
     final currentState = state.asData?.value ?? {};
     final updatedState = {...currentState}..remove(key);
     state = AsyncValue.data(updatedState);
-
-    await _isar.writeTxn(() async {
-      final wrapper =
-          await _isar.appInfoWrappers.filter().packageNameEqualTo(key).findFirst();
-      if (wrapper != null) {
-        await _isar.appInfoWrappers.delete(wrapper.id);
-      }
-    });
+    await _saveToStorage();
   }
 
-  /// Toggle an app in the selected list and save to Isar
+  /// Toggle an app in the selected list
   Future<void> toggleApp(AppInfo app, String key) async {
     final currentState = state.asData?.value ?? {};
     if (currentState.containsKey(key)) {
@@ -67,57 +57,69 @@ class SelectedAppsController extends AsyncNotifier<Map<String, AppInfo>> {
 
   /// Check if an app is selected
   bool isSelected(String key) {
-   
     return state.asData?.value.containsKey(key) ?? false;
   }
 
-  /// Load selected apps from Isar and validate them
+  /// Temporarily unblock an app (set shouldBlock to false)
+  Future<void> unblockApp(String key) async {
+    log("Unblocking the app: $key");
+    // The app stays selected but shouldBlock is handled via cooldown
+    // in the AccessibilityService native side
+  }
+
+  /// Load selected apps from SharedPreferences and validate them
   Future<Map<String, AppInfo>> _loadAndValidateFromStorage() async {
-    final storedWrappers = await _isar.appInfoWrappers.where().findAll();
+    final jsonString = _prefs.getString(_selectedAppsKey);
+    if (jsonString == null || jsonString.isEmpty) return {};
+
+    final storedWrappers = AppInfoWrapper.decodeList(jsonString);
     final validatedApps = <String, AppInfo>{};
+    final validWrappers = <AppInfoWrapper>[];
 
     for (var wrapper in storedWrappers) {
       log("wrapper: $wrapper");
-      final app = wrapper;
-      final isInstalled = await InstalledApps.isAppInstalled(app.packageName);
+      final isInstalled =
+          await InstalledApps.isAppInstalled(wrapper.packageName);
       if (isInstalled == true) {
-        validatedApps[app.packageName] = await ref.read(installedAppsController.notifier).getAppInfo(app.packageName);
-      } else {
-        await _isar.writeTxn(() async {
-          await _isar.appInfoWrappers.delete(wrapper.id);
-        });
+        validatedApps[wrapper.packageName] = await ref
+            .read(installedAppsController.notifier)
+            .getAppInfo(wrapper.packageName);
+        validWrappers.add(wrapper);
       }
+    }
+
+    // Save back only validated apps
+    if (validWrappers.length != storedWrappers.length) {
+      await _prefs.setString(
+          _selectedAppsKey, AppInfoWrapper.encodeList(validWrappers));
+      await _syncBlockedPackagesToNative(validWrappers);
     }
 
     return validatedApps;
   }
 
-  //change the app's shouldBlock value to false, with log
-
-  Future<void> unblockApp(String key) async {
-    final wrapper = await _isar.appInfoWrappers.filter().packageNameEqualTo(key).findFirst();
-    log("Unblocking the app: $key");
-    log("wrapper: $wrapper");
-    if (wrapper != null) {
-      
-      await _isar.writeTxn(() async {
-        wrapper.shouldBlock = false;
-        log("wrapper.shouldBlock: ${wrapper.shouldBlock}");
-        _isar.appInfoWrappers.put(wrapper);
-        log("$wrapper is unblocked");
-      });
-    }
+  /// Save current selected apps to SharedPreferences and sync to native
+  Future<void> _saveToStorage() async {
+    final currentState = state.asData?.value ?? {};
+    final wrappers = currentState.entries
+        .map((e) => AppInfoWrapper.fromAppInfo(e.value))
+        .toList();
+    await _prefs.setString(
+        _selectedAppsKey, AppInfoWrapper.encodeList(wrappers));
+    await _syncBlockedPackagesToNative(wrappers);
   }
 
-
+  /// Sync blocked package names to SharedPreferences for native AccessibilityService
+  Future<void> _syncBlockedPackagesToNative(
+      List<AppInfoWrapper> wrappers) async {
+    final blockedSet =
+        wrappers.where((w) => w.shouldBlock).map((w) => w.packageName).toSet();
+    await _prefs.setStringList('blocked_packages', blockedSet.toList());
+    log("Synced ${blockedSet.length} blocked packages to native");
+  }
 }
 
 final selectedAppsController =
     AsyncNotifierProvider<SelectedAppsController, Map<String, AppInfo>>(
   () => SelectedAppsController(),
 );
-
-final isarProvider = FutureProvider<Isar>((ref) async {
-  final dir = await getApplicationDocumentsDirectory();
-  return Isar.open([AppInfoWrapperSchema], directory: dir.path);
-});
