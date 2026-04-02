@@ -38,7 +38,9 @@ class _MyAppState extends ConsumerState<MyApp> {
       final packageName = event['packageName'] as String?;
       final appName = event['appName'] as String?;
       if (packageName != null && appName != null) {
-        ref.read(blockedAppController.notifier).setBlockedApp(packageName, appName);
+        ref
+            .read(blockedAppController.notifier)
+            .setBlockedApp(packageName, appName);
       }
     });
   }
@@ -64,4 +66,3 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
   }
 }
-

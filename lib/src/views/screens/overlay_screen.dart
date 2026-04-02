@@ -51,7 +51,9 @@ class OverlayScreen extends ConsumerWidget {
           grain: 0.2,
         ),
         child: Scaffold(
-          backgroundColor:  themeMode == AppThemeMode.light? Colors.transparent: Colors.black45,
+          backgroundColor: themeMode == AppThemeMode.light
+              ? Colors.transparent
+              : Colors.black45,
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
             child: Center(
@@ -74,7 +76,10 @@ class OverlayScreen extends ConsumerWidget {
                       children: [
                         TextSpan(
                           text: "\n$appName",
-                          style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge!
+                              .copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                         ),
@@ -86,9 +91,9 @@ class OverlayScreen extends ConsumerWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleLarge,
                   ).animate().fadeIn(delay: 1.seconds, duration: 1.6.seconds),
-          
+
                   const SizedBox(height: 40),
-          
+
                   // create a button to close the twitter
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -102,7 +107,9 @@ class OverlayScreen extends ConsumerWidget {
                       ),
                     ),
                     onPressed: () {
-                      ref.read(blockedAppController.notifier).removeBlockedApp();
+                      ref
+                          .read(blockedAppController.notifier)
+                          .removeBlockedApp();
                       goToHomeScreen();
                     },
                     child: Text(
@@ -121,8 +128,8 @@ class OverlayScreen extends ConsumerWidget {
                         ),
                       )
                       .then(
-                          delay:
-                              1.seconds) // Short pause before the shimmer starts
+                          delay: 1
+                              .seconds) // Short pause before the shimmer starts
                       .shimmer(
                         angle: 0.5,
                         duration:
@@ -139,11 +146,11 @@ class OverlayScreen extends ConsumerWidget {
                         end: 1 /
                             1.2, // Slowly scale back down to represent "exhale"
                         duration: 2.5.seconds,
-                        curve:
-                            Curves.easeInOutCubic, // Smooth scaling for "exhale"
+                        curve: Curves
+                            .easeInOutCubic, // Smooth scaling for "exhale"
                       ),
                   // Scale down for 1/3 of the cycle
-          
+
                   SizedBox(
                     height: 8,
                   ),
@@ -157,7 +164,9 @@ class OverlayScreen extends ConsumerWidget {
                       await ref
                           .read(selectedAppsController.notifier)
                           .unblockApp(packageName!);
-                      ref.read(blockedAppController.notifier).removeBlockedApp();
+                      ref
+                          .read(blockedAppController.notifier)
+                          .removeBlockedApp();
                       ref
                           .read(installedAppsController.notifier)
                           .openApp(packageName);

@@ -29,7 +29,8 @@ final goRouter = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/overlay', builder: (context, state) => const OverlayScreen()),
+      GoRoute(
+          path: '/overlay', builder: (context, state) => const OverlayScreen()),
       GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
     ],
   );

@@ -8,10 +8,15 @@ Currently focusing on **Android** first. Once the Android version is solid, iOS 
 
 ## Workspace Layout
 
-- `just_think.workspace/` — The outer workspace folder. Contains all sibling git worktrees for different branches.
-  - `just_think/` — The main worktree (branch: `main`).
-  - `temp/` — Scratch folder for anything we want to push or test. Not a real worktree.
-- Most recent feature branch: `overlay-window`.
+```
+just_think.workspace/          # Outer workspace folder (opened in VS Code)
+  just_think/                  # Main worktree (branch: main)
+  temp/                        # Scratch folder for ALL temporary files
+  <feature-branch>/            # Git worktrees for parallel branch work
+```
+
+- **Temp folder:** Always use `just_think.workspace/temp/` for any temporary or scratch files (PR bodies, test outputs, diffs, etc.). Never use `/tmp` or other system directories.
+- **Git worktrees:** Use `git worktree add` to create sibling directories inside `just_think.workspace/` for parallel branch work. Each worktree sits at the same level as `just_think/` and `temp/`. Example: `git worktree add ../feature-xyz feature-xyz`.
 
 ## Tech Stack
 
@@ -74,6 +79,8 @@ lib/
 - Keep UI code in `views/`, logic in `controllers/`, data classes in `models/`.
 - Theme is dynamic — colors and mode are controlled via `theme_controller.dart`.
 - Target platforms: Android primarily, with iOS/macOS/web/desktop scaffolding present.
+- **Temp files:** Always use `just_think.workspace/temp/` for scratch/temporary files (PR bodies, test outputs, etc.). Never use `/tmp` or other system dirs.
+- **Git worktrees:** For parallel branch work, create worktrees as siblings inside `just_think.workspace/` using `git worktree add ../branch-name branch-name`.
 
 ## Build & Run
 
@@ -91,5 +98,6 @@ dart run build_runner build
 ## Git Workflow
 
 - Default branch: `main`
-- Use git worktrees under `just_think.workspace/` for parallel branch work.
-- Most recent branch: `overlay-window`
+- Use git worktrees under `just_think.workspace/` for parallel branch work. Create them at sibling level: `git worktree add ../branch-name branch-name`.
+- List active worktrees: `git worktree list`.
+- Remove finished worktrees: `git worktree remove ../branch-name`.
