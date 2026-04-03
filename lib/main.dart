@@ -9,12 +9,10 @@ import 'package:just_think/src/controllers/installed_apps_controller.dart';
 import 'package:just_think/src/controllers/selected_apps_controller.dart';
 import 'package:just_think/src/controllers/theme_controller.dart';
 import 'package:just_think/src/core/app_theme.dart';
-import 'package:just_think/src/core/background_service.dart';
 import 'package:just_think/src/core/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeService();
   runApp(const ProviderScope(child: MyApp()));
 }
 

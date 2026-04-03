@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final needsSetup = !_isAccessibilityEnabled;
+    final needsSetup = !_isAccessibilityEnabled || !_isBatteryOptIgnored;
 
     return Scaffold(
       appBar: AppBar(

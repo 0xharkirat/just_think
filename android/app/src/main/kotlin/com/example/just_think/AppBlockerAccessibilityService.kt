@@ -79,12 +79,19 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
     private fun launchOverlay(blockedPackageName: String) {
         try {
-            val intent = Intent(this, MainActivity::class.java).apply {
-                action = "com.hsi.harki.just_think.ACTION_BLOCK_APP"
-                putExtra("blocked_package_name", blockedPackageName)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            }
-            startActivity(intent)
+            // Go home first to stop the blocked app's activity transition
+            // from stealing focus back after our overlay appears
+            performGlobalAction(GLOBAL_ACTION_HOME)
+
+            // Small delay to let the home transition complete before launching overlay
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    action = "com.hsi.harki.just_think.ACTION_BLOCK_APP"
+                    putExtra("blocked_package_name", blockedPackageName)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                startActivity(intent)
+            }, 300)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to launch overlay: ${e.message}")
         }

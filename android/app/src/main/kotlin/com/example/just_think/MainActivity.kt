@@ -54,6 +54,12 @@ class MainActivity : FlutterActivity() {
                         requestBatteryOptExemption()
                         result.success(null)
                     }
+                    "syncBlockedPackages" -> {
+                        val packages = call.argument<List<String>>("packages") ?: emptyList()
+                        val prefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                        prefs.edit().putStringSet("flutter.blocked_packages", packages.toSet()).apply()
+                        result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             }

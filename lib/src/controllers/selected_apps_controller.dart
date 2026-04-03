@@ -109,13 +109,20 @@ class SelectedAppsController extends AsyncNotifier<Map<String, AppInfo>> {
     await _syncBlockedPackagesToNative(wrappers);
   }
 
-  /// Sync blocked package names to SharedPreferences for native AccessibilityService
+  /// Sync blocked package names to native AccessibilityService via MethodChannel.
+  /// Uses MethodChannel so Kotlin writes a native StringSet to SharedPreferences,
+  /// which the AccessibilityService can read with getStringSet().
   Future<void> _syncBlockedPackagesToNative(
       List<AppInfoWrapper> wrappers) async {
-    final blockedSet =
-        wrappers.where((w) => w.shouldBlock).map((w) => w.packageName).toSet();
-    await _prefs.setStringList('blocked_packages', blockedSet.toList());
-    log("Synced ${blockedSet.length} blocked packages to native");
+    final blockedList =
+        wrappers.where((w) => w.shouldBlock).map((w) => w.packageName).toList();
+    try {
+      await const MethodChannel(_blockerChannel)
+          .invokeMethod('syncBlockedPackages', {'packages': blockedList});
+      log("Synced ${blockedList.length} blocked packages to native");
+    } on PlatformException catch (e) {
+      log("Failed to sync blocked packages: ${e.message}");
+    }
   }
 }
 
